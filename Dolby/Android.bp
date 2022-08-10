@@ -34,7 +34,17 @@ android_app {
         proguard_flags_files: ["proguard.flags"],
     },
 
-    required: ["preinstalled-packages-platform-dolby.xml"],
+    required: [
+        "privapp-permissions-dolby.xml",
+        "preinstalled-packages-platform-dolby.xml",
+    ],
+}
+
+prebuilt_etc {
+    name: "privapp-permissions-dolby.xml",
+    src: "privapp-permissions-dolby.xml",
+    sub_dir: "permissions",
+    system_ext_specific: true,
 }
 
 prebuilt_etc {
