@@ -12,7 +12,8 @@ import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Bundle
 import android.os.Handler
-import android.widget.Switch
+import android.widget.CompoundButton
+import android.widget.CompoundButton.OnCheckedChangeListener
 import android.widget.Toast
 import androidx.preference.ListPreference
 import androidx.preference.Preference
@@ -35,10 +36,9 @@ import co.aospa.dolby.DolbyConstants.Companion.dlog
 import co.aospa.dolby.DolbyController
 import co.aospa.dolby.R
 import com.android.settingslib.widget.MainSwitchPreference
-import com.android.settingslib.widget.OnMainSwitchChangeListener
 
 class DolbySettingsFragment : PreferenceFragment(),
-    OnPreferenceChangeListener, OnMainSwitchChangeListener {
+    OnPreferenceChangeListener, OnCheckedChangeListener {
 
     private val switchBar by lazy {
         findPreference<MainSwitchPreference>(PREF_ENABLE)!!
@@ -200,8 +200,8 @@ class DolbySettingsFragment : PreferenceFragment(),
         return true
     }
 
-    override fun onSwitchChanged(switchView: Switch, isChecked: Boolean) {
-        dlog(TAG, "onSwitchChanged($isChecked)")
+    override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
+        dlog(TAG, "onCheckedChanged($isChecked)")
         dolbyController.dsOn = isChecked
         profilePref.setEnabled(isChecked)
         updateProfileSpecificPrefs()
