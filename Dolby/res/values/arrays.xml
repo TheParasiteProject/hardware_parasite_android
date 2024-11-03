@@ -8,7 +8,7 @@
     <!-- Dolby Atmos -->
     <string-array name="dolby_profile_entries">
         <item>@string/dolby_profile_dynamic</item>
-        <item>@string/dolby_profile_video</item>
+        <item>@string/dolby_profile_movie</item>
         <item>@string/dolby_profile_music</item>
         <item>@string/dolby_profile_voice</item>
         <item>@string/dolby_profile_custom</item>
