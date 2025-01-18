@@ -10,6 +10,7 @@ import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.content.res.Resources.NotFoundException
 import android.os.Bundle
 import android.os.Handler
 import android.widget.CompoundButton
@@ -111,15 +112,17 @@ class DolbySettingsFragment : PreferenceFragment(),
         dlog(TAG, "onCreatePreferences")
         addPreferencesFromResource(R.xml.dolby_settings)
 
+        val dsOn = dolbyController.dsOn
+        switchBar.addOnSwitchChangeListener(this)
+        switchBar.setChecked(dsOn)
+
         stereoPref = findPreference<SeekBarPreference>(PREF_STEREO_WIDENING)!!
-        if (!context.resources.getBoolean(R.bool.dolby_stereo_widening_supported)) {
-            settingsCategory.removePreference(stereoPref!!)
+        if (!updatePrefs(R.bool.dolby_stereo_widening_supported, advSettingsCategory, stereoPref, true)) {
             stereoPref = null
         }
 
         volumePref = findPreference<SwitchPreferenceCompat>(PREF_VOLUME)!!
-        if (!context.resources.getBoolean(R.bool.dolby_volume_leveler_supported)) {
-            advSettingsCategory.removePreference(volumePref!!)
+        if (!updatePrefs(R.bool.dolby_volume_leveler_supported, advSettingsCategory, volumePref, true)) {
             volumePref = null
         }
 
@@ -127,32 +130,58 @@ class DolbySettingsFragment : PreferenceFragment(),
             it.profile = dolbyController.profile
         }
 
-        val dsOn = dolbyController.dsOn
-        switchBar.addOnSwitchChangeListener(this)
-        switchBar.setChecked(dsOn)
+        if (updatePrefs(R.bool.dolby_profile_supported, null, profilePref, true)) {
+            updateProfileIcon(dolbyController.profile)
+        }
+        updatePrefs(R.bool.dolby_preset_supported, settingsCategory, presetPref, true)
+        updatePrefs(R.bool.dolby_bass_enhancer_supported, settingsCategory, bassPref, true)
+        updatePrefs(R.bool.dolby_headphone_virtualizer_supported, advSettingsCategory, hpVirtPref, true)
+        updatePrefs(R.bool.dolby_speaker_virtualizer_supported, advSettingsCategory, spkVirtPref, true)
+        updatePrefs(R.bool.dolby_dialogue_enhancer_supported, advSettingsCategory, dialoguePref, true)
+        if (updatePrefs(R.bool.dolby_dialogue_enhancer_supported, advSettingsCategory, dialogueAmountPref, true)) {
+            dialogueAmountPref.apply {
+                onPreferenceChangeListener = this@DolbySettingsFragment
+                min = context.resources.getInteger(R.integer.dialogue_enhancer_min)
+                max = context.resources.getInteger(R.integer.dialogue_enhancer_max)
+            }
+        }
+        updatePrefs(R.bool.dolby_intelligent_equalizer_supported, advSettingsCategory, ieqPref, true)
 
-        profilePref.onPreferenceChangeListener = this
-        updateProfileIcon(dolbyController.profile)
-        hpVirtPref.onPreferenceChangeListener = this
-        spkVirtPref.onPreferenceChangeListener = this
         stereoPref?.apply {
             onPreferenceChangeListener = this@DolbySettingsFragment
             min = context.resources.getInteger(R.integer.stereo_widening_min)
             max = context.resources.getInteger(R.integer.stereo_widening_max)
         }
-        dialoguePref.onPreferenceChangeListener = this
-        dialogueAmountPref.apply {
-            onPreferenceChangeListener = this@DolbySettingsFragment
-            min = context.resources.getInteger(R.integer.dialogue_enhancer_min)
-            max = context.resources.getInteger(R.integer.dialogue_enhancer_max)
-        }
-        bassPref.onPreferenceChangeListener = this
-        volumePref?.onPreferenceChangeListener = this
-        ieqPref.onPreferenceChangeListener = this
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler)
         updateSpeakerState()
         updateProfileSpecificPrefsImmediate()
+    }
+
+    fun updatePrefs(res: Int, categ: PreferenceCategory?, pref: Preference?, setListener: Boolean): Boolean {
+        val supported =
+            try {
+                context.resources.getBoolean(res)
+            } catch (e: NotFoundException) {
+                dlog(TAG, "Failed to get boolean state of ${res}")
+                false
+            }
+
+        if (!supported) {
+            if (categ == null && pref != null) {
+                preferenceScreen?.removePreference(pref)
+                return supported
+            }
+            if (pref != null) {
+                categ?.removePreference(pref)
+            }
+        } else {
+            if (setListener) {
+                pref?.onPreferenceChangeListener = this
+            }
+        }
+
+        return supported
     }
 
     override fun onDestroyView() {
