@@ -11,4 +11,12 @@
     <!-- Whether volume leveler is supported -->
     <bool name="dolby_volume_leveler_supported">true</bool>
 
+    <bool name="dolby_profile_supported">true</bool>
+    <bool name="dolby_preset_supported">true</bool>
+    <bool name="dolby_intelligent_equalizer_supported">true</bool>
+    <bool name="dolby_speaker_virtualizer_supported">true</bool>
+    <bool name="dolby_headphone_virtualizer_supported">true</bool>
+    <bool name="dolby_dialogue_enhancer_supported">true</bool>
+    <bool name="dolby_bass_enhancer_supported">true</bool>
+
 </resources>
