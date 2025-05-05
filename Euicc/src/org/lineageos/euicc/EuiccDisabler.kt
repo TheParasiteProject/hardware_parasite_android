@@ -6,24 +6,24 @@
 package org.lineageos.euicc
 
 import android.content.Context
+import android.content.res.Resources
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.ApplicationInfoFlags
 import android.util.Log
+import org.lineageos.euicc.R
 
 object EuiccDisabler {
     private const val TAG = "EuiccDisabler"
 
-    private val EUICC_DEPENDENCIES = listOf(
-        "com.google.android.gms",
-        "com.google.android.gsf",
-    )
-
-    private val EUICC_PACKAGES = listOf(
-        "com.google.android.euicc",
-        "com.google.euiccpixel",
-        "com.google.android.ims",
-    )
+    private fun getStringArrayResSafely(context: Context, resId: Int): Array<String> {
+        return try {
+            context.resources.getStringArray(resId)
+        } catch (e: Resources.NotFoundException) {
+            Log.d(TAG, "Failed to get resources.", e)
+            emptyArray()
+        }
+    }
 
     private fun isInstalled(pm: PackageManager, pkgName: String) = runCatching {
         val info = pm.getApplicationInfo(pkgName, ApplicationInfoFlags.of(0))
@@ -38,14 +38,15 @@ object EuiccDisabler {
 
     fun enableOrDisableEuicc(context: Context) {
         val pm = context.packageManager
-        val disable = EUICC_DEPENDENCIES.any { !isInstalledAndEnabled(pm, it) }
+        val disable = getStringArrayResSafely(context, R.array.config_euicc_depedencies)
+                .any { !isInstalledAndEnabled(pm, it) }
         val flag = if (disable) {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         } else {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         }
 
-        for (pkg in EUICC_PACKAGES) {
+        for (pkg in getStringArrayResSafely(context, R.array.config_euicc_packages)) {
             if (isInstalled(pm, pkg)) {
                 pm.setApplicationEnabledSetting(pkg, flag, 0)
             }
