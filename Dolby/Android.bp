@@ -26,6 +26,13 @@ android_app {
         "org.lineageos.settings.resources",
     ],
 
+    optimize: {
+        enabled: true,
+        shrink: true,
+        optimize: true,
+        proguard_flags_files: ["proguard.flags"],
+    },
+
     required: ["preinstalled-packages-platform-dolby.xml"],
 }
 
