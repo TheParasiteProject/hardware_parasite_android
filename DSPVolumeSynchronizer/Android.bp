@@ -16,6 +16,13 @@ android_app {
         "SettingsLib",
     ],
 
+    optimize: {
+        enabled: true,
+        shrink: true,
+        optimize: true,
+        proguard_flags_files: ["proguard.flags"],
+    },
+
     required: [
         "privapp-permissions-dspvolume",
         "config-dspvolume",
