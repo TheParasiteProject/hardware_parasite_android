@@ -1,3 +1,4 @@
--keep class org.lineageos.euicc.* {
+-allowaccessmodification
+-keep,allowoptimization,allowaccessmodification class org.lineageos.euicc.* {
   *;
 }

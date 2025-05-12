@@ -16,6 +16,9 @@ android_app {
     privileged: true,
 
     optimize: {
+        enabled: true,
+        shrink: true,
+        optimize: true,
         proguard_flags_files: ["proguard.flags"],
     },
     required: [
