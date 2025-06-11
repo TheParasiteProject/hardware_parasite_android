@@ -22,6 +22,13 @@
         <item>3</item>
     </string-array>
 
+    <integer-array name="dolby_profile_icons">
+        <item>@drawable/ic_profile_dynamic</item>
+        <item>@drawable/ic_profile_movie</item>
+        <item>@drawable/ic_profile_music</item>
+        <item>@drawable/ic_profile_custom</item>
+    </integer-array>
+
     <string-array name="dolby_preset_entries" translatable="false">
         <item>@string/dolby_preset_default</item>
         <item>@string/dolby_preset_rock</item>

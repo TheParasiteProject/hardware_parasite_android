@@ -347,10 +347,10 @@ internal class DolbyController private constructor(
                         if (isOnSpeaker) 0 else 3)[0].also {
                     dlog(TAG, "getStereoWideningAmount: $it")
                 }
-                return
-            }
-            dolbyEffect.getDapParameterInt(DsParam.STEREO_WIDENING_AMOUNT, profile).also {
-                dlog(TAG, "getStereoWideningAmount: $it")
+            } else {
+                dolbyEffect.getDapParameterInt(DsParam.STEREO_WIDENING_AMOUNT, profile).also {
+                    dlog(TAG, "getStereoWideningAmount: $it")
+                }
             }
         }
 
