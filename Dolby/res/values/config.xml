@@ -19,4 +19,6 @@
     <bool name="dolby_dialogue_enhancer_supported">true</bool>
     <bool name="dolby_bass_enhancer_supported">true</bool>
 
+    <bool name="dolby_uses_port_based_tuning">false</bool>
+
 </resources>
