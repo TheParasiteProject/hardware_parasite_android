@@ -314,13 +314,18 @@ class DolbySettingsFragment : PreferenceFragment(),
     }
 
     private fun updateProfileIcon(profile: Int) {
-        when (profile) {
-            0 -> profilePref.setIcon(R.drawable.ic_profile_dynamic)
-            1 -> profilePref.setIcon(R.drawable.ic_profile_movie)
-            2 -> profilePref.setIcon(R.drawable.ic_profile_music)
-            3 -> profilePref.setIcon(R.drawable.ic_profile_custom)
-            8 -> profilePref.setIcon(R.drawable.ic_profile_voice)
-            else -> profilePref.setIcon(R.drawable.ic_profile_custom)
+        val profiles = context.resources.getStringArray(R.array.dolby_profile_values)
+        val icons = context.resources.obtainTypedArray(R.array.dolby_profile_icons)
+        try {
+            val index = profiles.indexOf(profile.toString())
+
+            if (index != -1 && index < icons.length()) {
+                profilePref.setIcon(icons.getResourceId(index, 0))
+            } else {
+                profilePref.setIcon(R.drawable.ic_dolby)
+            }
+        } finally {
+            icons.recycle()
         }
     }
 
