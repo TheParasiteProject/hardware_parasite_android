@@ -63,6 +63,19 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         checkStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
     }
 
+    fun setDapParameter(param: DsParam, values: IntArray, profile: Int = this.profile, port: Int) {
+        dlog(TAG, "setDapParameter: profile=$profile param=$param port=$port")
+        val length = values.size
+        val buf = ByteArray((length + 5) * 4)
+        int32ToByteArray(EFFECT_PARAM_SET_TUNING_PARAMETER, buf, 0)
+        int32ToByteArray(length + 1, buf, 4)
+        int32ToByteArray(profile, buf, 8)
+        int32ToByteArray(port, buf, 12)
+        int32ToByteArray(param.id, buf, 16)
+        int32ArrayToByteArray(values, buf, 20)
+        checkStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
+    }
+
     fun setDapParameter(param: DsParam, enable: Boolean, profile: Int = this.profile) =
         setDapParameter(param, intArrayOf(if (enable) 1 else 0), profile)
 
@@ -74,6 +87,15 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         val length = param.length
         val buf = ByteArray((length + 2) * 4)
         val p = (param.id shl 16) + (profile shl 8) + EFFECT_PARAM_GET_PROFILE_PARAMETER
+        checkStatus(getParameter(p, buf))
+        return byteArrayToInt32Array(buf, length)
+    }
+
+    fun getDapParameter(param: DsParam, profile: Int = this.profile, port: Int): IntArray {
+        dlog(TAG, "getDapParameter: profile=$profile param=$param port=$port")
+        val length = param.length
+        val buf = ByteArray((length + 2) * 4)
+        val p = (param.id shl 16) + ((profile shl 12) or (port shl 8)) + EFFECT_PARAM_GET_TUNING_PARAMETER
         checkStatus(getParameter(p, buf))
         return byteArrayToInt32Array(buf, length)
     }
@@ -94,6 +116,8 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         private const val EFFECT_PARAM_PROFILE = 0xA000000
         private const val EFFECT_PARAM_SET_PROFILE_PARAMETER = 0x1000000
         private const val EFFECT_PARAM_GET_PROFILE_PARAMETER = 0x1000005
+        private const val EFFECT_PARAM_SET_TUNING_PARAMETER = 0x2000000
+        private const val EFFECT_PARAM_GET_TUNING_PARAMETER = 0x2000005
         private const val EFFECT_PARAM_RESET_PROFILE_SETTINGS = 0xC000000
 
         private fun int32ToByteArray(value: Int, dst: ByteArray, index: Int) {

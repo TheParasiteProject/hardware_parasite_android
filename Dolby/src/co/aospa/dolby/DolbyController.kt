@@ -7,6 +7,7 @@
 package co.aospa.dolby
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
@@ -30,6 +31,13 @@ internal class DolbyController private constructor(
     private val volumeLevelerSupported =
         context.getResources().getBoolean(R.bool.dolby_volume_leveler_supported)
 
+    private var isOnSpeaker = true
+        set(value) {
+            if (field == value) return
+            field = value
+            dlog(TAG, "setIsOnSpeaker($value)")
+        }
+
     // Restore current profile on every media session
     private val playbackCallback = object : AudioPlaybackCallback() {
         override fun onPlaybackConfigChanged(configs: List<AudioPlaybackConfiguration>) {
@@ -46,11 +54,13 @@ internal class DolbyController private constructor(
     private val audioDeviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
             dlog(TAG, "onAudioDevicesAdded")
+            updateSpeakerState()
             setCurrentProfile()
         }
 
         override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
             dlog(TAG, "onAudioDevicesRemoved")
+            updateSpeakerState()
             setCurrentProfile()
         }
     }
@@ -207,6 +217,11 @@ internal class DolbyController private constructor(
         }
     }
 
+    private fun updateSpeakerState() {
+        val device = audioManager!!.getDevicesForAttributes(ATTRIBUTES_MEDIA)[0]
+        isOnSpeaker = (device.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)
+    }
+
     private fun setCurrentProfile() {
         dlog(TAG, "setCurrentProfile")
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -327,6 +342,13 @@ internal class DolbyController private constructor(
         if (!stereoWideningSupported) {
             0
         } else {
+            if (context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
+                dolbyEffect.getDapParameter(DsParam.STEREO_WIDENING_AMOUNT, profile,
+                        if (isOnSpeaker) 0 else 3)[0].also {
+                    dlog(TAG, "getStereoWideningAmount: $it")
+                }
+                return
+            }
             dolbyEffect.getDapParameterInt(DsParam.STEREO_WIDENING_AMOUNT, profile).also {
                 dlog(TAG, "getStereoWideningAmount: $it")
             }
@@ -336,6 +358,11 @@ internal class DolbyController private constructor(
         if (!stereoWideningSupported) return
         dlog(TAG, "setStereoWideningAmount: $value")
         checkEffect()
+        if (context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
+            dolbyEffect.setDapParameter(DsParam.STEREO_WIDENING_AMOUNT, intArrayOf(value), profile,
+                    if (isOnSpeaker) 0 else 3)
+            return
+        }
         dolbyEffect.setDapParameter(DsParam.STEREO_WIDENING_AMOUNT, value, profile)
     }
 
@@ -362,13 +389,25 @@ internal class DolbyController private constructor(
     }
 
     fun getIeqPreset(profile: Int = this.profile) =
-        dolbyEffect.getDapParameterInt(DsParam.IEQ_PRESET, profile).also {
-            dlog(TAG, "getIeqPreset: $it")
+        if (context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
+            dolbyEffect.getDapParameter(DsParam.IEQ_PRESET, profile,
+                    if (isOnSpeaker) 0 else 3)[0].also {
+                dlog(TAG, "getIeqPreset: $it")
+            }
+        } else {
+            dolbyEffect.getDapParameterInt(DsParam.IEQ_PRESET, profile).also {
+                dlog(TAG, "getIeqPreset: $it")
+            }
         }
 
     fun setIeqPreset(value: Int, profile: Int = this.profile) {
         dlog(TAG, "setIeqPreset: $value")
         checkEffect()
+        if (context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
+            dolbyEffect.setDapParameter(DsParam.IEQ_PRESET, intArrayOf(value), profile,
+                    if (isOnSpeaker) 0 else 3)
+            return
+        }
         dolbyEffect.setDapParameter(DsParam.IEQ_PRESET, value, profile)
     }
 
@@ -377,6 +416,9 @@ internal class DolbyController private constructor(
         private const val EFFECT_PRIORITY = 100
         private const val PREF_PRESETS = "presets"
         private const val PREF_KEY_PRESETS_MIGRATED = "presets_migrated"
+        private val ATTRIBUTES_MEDIA = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .build()
 
         @Volatile
         private var instance: DolbyController? = null
