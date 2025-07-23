@@ -31,7 +31,14 @@ internal class DolbyController private constructor(
     private val volumeLevelerSupported =
         context.getResources().getBoolean(R.bool.dolby_volume_leveler_supported)
 
+    private var speakerOverride: Boolean? = null
     private var isOnSpeaker = true
+        get() {
+            speakerOverride?.let {
+                return it
+            }
+            return field
+        }
         set(value) {
             if (field == value) return
             field = value
@@ -104,6 +111,15 @@ internal class DolbyController private constructor(
             dolbyEffect.profile = value
         }
 
+    var port: Int = 0
+        get() =
+            if (isOnSpeaker) 0 else 3
+        set(value) {
+            if (field == value) return
+            field = value
+            dlog(TAG, "setPort($value)")
+        }
+
     init {
         // Restore our main settings
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -114,8 +130,17 @@ internal class DolbyController private constructor(
                 .forEach { profile ->
                     // Reset dolby first to prevent it from loading bad settings
                     dolbyEffect.resetProfileSpecificSettings(profile)
-                    // Now restore our profile-specific settings
-                    restoreSettings(profile)
+                    if (!context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
+                        // Now restore our profile-specific settings
+                        restoreSettings(profile)
+                    } else {
+                        // Now restore our profile-specific settings
+                        speakerOverride = true
+                        restoreSettings(profile)
+                        speakerOverride = false
+                        restoreSettings(profile)
+                        speakerOverride = null
+                    }
                 }
 
         // Finally restore the current profile.
@@ -344,7 +369,7 @@ internal class DolbyController private constructor(
         } else {
             if (context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
                 dolbyEffect.getDapParameter(DsParam.STEREO_WIDENING_AMOUNT, profile,
-                        if (isOnSpeaker) 0 else 3)[0].also {
+                        port)[0].also {
                     dlog(TAG, "getStereoWideningAmount: $it")
                 }
             } else {
@@ -360,7 +385,7 @@ internal class DolbyController private constructor(
         checkEffect()
         if (context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
             dolbyEffect.setDapParameter(DsParam.STEREO_WIDENING_AMOUNT, intArrayOf(value), profile,
-                    if (isOnSpeaker) 0 else 3)
+                    port)
             return
         }
         dolbyEffect.setDapParameter(DsParam.STEREO_WIDENING_AMOUNT, value, profile)
@@ -391,7 +416,7 @@ internal class DolbyController private constructor(
     fun getIeqPreset(profile: Int = this.profile) =
         if (context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
             dolbyEffect.getDapParameter(DsParam.IEQ_PRESET, profile,
-                    if (isOnSpeaker) 0 else 3)[0].also {
+                    port)[0].also {
                 dlog(TAG, "getIeqPreset: $it")
             }
         } else {
@@ -405,7 +430,7 @@ internal class DolbyController private constructor(
         checkEffect()
         if (context.resources.getBoolean(R.bool.dolby_uses_port_based_tuning)) {
             dolbyEffect.setDapParameter(DsParam.IEQ_PRESET, intArrayOf(value), profile,
-                    if (isOnSpeaker) 0 else 3)
+                    port)
             return
         }
         dolbyEffect.setDapParameter(DsParam.IEQ_PRESET, value, profile)
