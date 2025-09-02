@@ -6,6 +6,7 @@
 
 package co.aospa.dolby.preference
 
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
@@ -13,6 +14,8 @@ import android.media.AudioManager
 import android.content.res.Resources.NotFoundException
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
+import android.view.View
 import android.widget.CompoundButton
 import android.widget.CompoundButton.OnCheckedChangeListener
 import android.widget.Toast
@@ -21,7 +24,6 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.Preference.OnPreferenceChangeListener
 import androidx.preference.PreferenceCategory
-import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SeekBarPreference
 import androidx.preference.SwitchPreferenceCompat
 import co.aospa.dolby.DolbyConstants
@@ -41,9 +43,13 @@ import co.aospa.dolby.DolbyConstants.Companion.dlog
 import co.aospa.dolby.DolbyController
 import co.aospa.dolby.R
 import com.android.settingslib.widget.MainSwitchPreference
+import com.android.settingslib.widget.SettingsBasePreferenceFragment
 
-class DolbySettingsFragment : PreferenceFragmentCompat(),
+class DolbySettingsFragment : SettingsBasePreferenceFragment(),
     OnPreferenceChangeListener, OnCheckedChangeListener {
+
+    private val appContext: Context
+        get() = requireContext().applicationContext
 
     private val switchBar by lazy {
         findPreference<MainSwitchPreference>(PREF_ENABLE)!!
@@ -84,9 +90,9 @@ class DolbySettingsFragment : PreferenceFragmentCompat(),
     private var volumePref: SwitchPreferenceCompat? = null
     private var stereoPref: SeekBarPreference? = null
 
-    private val dolbyController by lazy { DolbyController.getInstance(requireContext()) }
-    private val audioManager by lazy { requireContext().getSystemService(AudioManager::class.java)!! }
-    private val handler = Handler()
+    private val dolbyController by lazy { DolbyController.getInstance(appContext) }
+    private val audioManager by lazy { appContext.getSystemService(AudioManager::class.java)!! }
+    private val handler = Handler(Looper.getMainLooper())
 
     private var isOnSpeaker = true
         set(value) {
@@ -113,14 +119,12 @@ class DolbySettingsFragment : PreferenceFragmentCompat(),
         setPreferencesFromResource(R.xml.dolby_settings, rootKey)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        val context = requireContext()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         val dsOn = dolbyController.dsOn
         switchBar.addOnSwitchChangeListener(this)
-        switchBar.setChecked(dsOn)
+        switchBar.isChecked = dsOn
 
         stereoPref = findPreference<SeekBarPreference>(PREF_STEREO_WIDENING)!!
         if (!updatePrefs(R.bool.dolby_stereo_widening_supported, advSettingsCategory, stereoPref, true)) {
@@ -132,7 +136,7 @@ class DolbySettingsFragment : PreferenceFragmentCompat(),
             volumePref = null
         }
 
-        preferenceManager.preferenceDataStore = DolbyPreferenceStore(context).also {
+        preferenceManager.preferenceDataStore = DolbyPreferenceStore(appContext).also {
             it.profile = dolbyController.profile
         }
 
@@ -147,16 +151,16 @@ class DolbySettingsFragment : PreferenceFragmentCompat(),
         if (updatePrefs(R.bool.dolby_dialogue_enhancer_supported, advSettingsCategory, dialogueAmountPref, true)) {
             dialogueAmountPref.apply {
                 onPreferenceChangeListener = this@DolbySettingsFragment
-                min = context.resources.getInteger(R.integer.dialogue_enhancer_min)
-                max = context.resources.getInteger(R.integer.dialogue_enhancer_max)
+                min = resources.getInteger(R.integer.dialogue_enhancer_min)
+                max = resources.getInteger(R.integer.dialogue_enhancer_max)
             }
         }
         updatePrefs(R.bool.dolby_intelligent_equalizer_supported, advSettingsCategory, ieqPref, true)
 
         stereoPref?.apply {
             onPreferenceChangeListener = this@DolbySettingsFragment
-            min = context.resources.getInteger(R.integer.stereo_widening_min)
-            max = context.resources.getInteger(R.integer.stereo_widening_max)
+            min = resources.getInteger(R.integer.stereo_widening_min)
+            max = resources.getInteger(R.integer.stereo_widening_max)
         }
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler)
@@ -165,11 +169,9 @@ class DolbySettingsFragment : PreferenceFragmentCompat(),
     }
 
     fun updatePrefs(res: Int, categ: PreferenceCategory?, pref: Preference?, setListener: Boolean): Boolean {
-        val context = requireContext()
-
         val supported =
             try {
-                context.resources.getBoolean(res)
+                resources.getBoolean(res)
             } catch (e: NotFoundException) {
                 dlog(TAG, "Failed to get boolean state of ${res}")
                 false
@@ -267,16 +269,14 @@ class DolbySettingsFragment : PreferenceFragmentCompat(),
     }
 
     private fun updateProfileSpecificPrefsImmediate() {
-        val context = requireContext()
-
         if (!dolbyController.dsOn) {
             dlog(TAG, "updateProfileSpecificPrefs: Dolby is off")
             advSettingsCategory.isVisible = false
             return
         }
 
-        val unknownRes = context.getString(R.string.dolby_unknown)
-        val headphoneRes = context.getString(R.string.dolby_connect_headphones)
+        val unknownRes = getString(R.string.dolby_unknown)
+        val headphoneRes = getString(R.string.dolby_connect_headphones)
         val currentProfile = dolbyController.profile
         val isDynamicProfile = currentProfile == 0
         (preferenceManager.preferenceDataStore as DolbyPreferenceStore).profile = currentProfile
@@ -323,10 +323,8 @@ class DolbySettingsFragment : PreferenceFragmentCompat(),
     }
 
     private fun updateProfileIcon(profile: Int) {
-        val context = requireContext()
-
-        val profiles = context.resources.getStringArray(R.array.dolby_profile_values)
-        val icons = context.resources.obtainTypedArray(R.array.dolby_profile_icons)
+        val profiles = resources.getStringArray(R.array.dolby_profile_values)
+        val icons = resources.obtainTypedArray(R.array.dolby_profile_icons)
         try {
             val index = profiles.indexOf(profile.toString())
 
