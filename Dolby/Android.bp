@@ -6,7 +6,7 @@
 //
 
 android_app {
-    name: "Dolby",
+    name: "ParanoidDolby",
 
     srcs: ["src/**/*.kt"],
     resource_dirs: ["res"],
