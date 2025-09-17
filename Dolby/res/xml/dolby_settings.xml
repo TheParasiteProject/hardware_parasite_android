@@ -69,7 +69,7 @@
 
         <com.android.settingslib.widget.SliderPreference
             android:key="dolby_stereo_widening"
-            android:title="@string/dolby_strength"
+            android:title="@string/dolby_stereo_widening"
             android:dependency="dolby_virtualizer"
             android:min="@integer/stereo_widening_min"
             android:max="@integer/stereo_widening_max"
