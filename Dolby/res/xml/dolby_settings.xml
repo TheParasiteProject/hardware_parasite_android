@@ -67,7 +67,7 @@
             android:title="@string/dolby_hp_virtualizer"
             android:enabled="@bool/dolby_headphone_virtualizer_supported" />
 
-        <SeekBarPreference
+        <com.android.settingslib.widget.SliderPreference
             android:key="dolby_stereo_widening"
             android:title="@string/dolby_strength"
             android:dependency="dolby_virtualizer"
@@ -80,7 +80,7 @@
             android:title="@string/dolby_dialogue_enhancer"
             android:enabled="@bool/dolby_dialogue_enhancer_supported" />
 
-        <SeekBarPreference
+        <com.android.settingslib.widget.SliderPreference
             android:key="dolby_dialogue_amount"
             android:title="@string/dolby_strength"
             android:dependency="dolby_dialogue_enabled"

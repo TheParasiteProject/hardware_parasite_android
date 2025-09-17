@@ -24,7 +24,6 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.Preference.OnPreferenceChangeListener
 import androidx.preference.PreferenceCategory
-import androidx.preference.SeekBarPreference
 import androidx.preference.SwitchPreferenceCompat
 import co.aospa.dolby.DolbyConstants
 import co.aospa.dolby.DolbyConstants.Companion.PREF_BASS
@@ -44,6 +43,7 @@ import co.aospa.dolby.DolbyController
 import co.aospa.dolby.R
 import com.android.settingslib.widget.MainSwitchPreference
 import com.android.settingslib.widget.SettingsBasePreferenceFragment
+import com.android.settingslib.widget.SliderPreference
 
 class DolbySettingsFragment : SettingsBasePreferenceFragment(),
     OnPreferenceChangeListener, OnCheckedChangeListener {
@@ -67,7 +67,7 @@ class DolbySettingsFragment : SettingsBasePreferenceFragment(),
         findPreference<SwitchPreferenceCompat>(PREF_DIALOGUE)!!
     }
     private val dialogueAmountPref by lazy {
-        findPreference<SeekBarPreference>(PREF_DIALOGUE_AMOUNT)!!
+        findPreference<SliderPreference>(PREF_DIALOGUE_AMOUNT)!!
     }
     private val bassPref by lazy {
         findPreference<SwitchPreferenceCompat>(PREF_BASS)!!
@@ -88,7 +88,7 @@ class DolbySettingsFragment : SettingsBasePreferenceFragment(),
         findPreference<Preference>("dolby_adv_settings_footer")!!
     }
     private var volumePref: SwitchPreferenceCompat? = null
-    private var stereoPref: SeekBarPreference? = null
+    private var stereoPref: SliderPreference? = null
 
     private val dolbyController by lazy { DolbyController.getInstance(appContext) }
     private val audioManager by lazy { appContext.getSystemService(AudioManager::class.java)!! }
@@ -126,7 +126,7 @@ class DolbySettingsFragment : SettingsBasePreferenceFragment(),
         switchBar.addOnSwitchChangeListener(this)
         switchBar.isChecked = dsOn
 
-        stereoPref = findPreference<SeekBarPreference>(PREF_STEREO_WIDENING)!!
+        stereoPref = findPreference<SliderPreference>(PREF_STEREO_WIDENING)!!
         if (!updatePrefs(R.bool.dolby_stereo_widening_supported, advSettingsCategory, stereoPref, true)) {
             stereoPref = null
         }
@@ -153,6 +153,8 @@ class DolbySettingsFragment : SettingsBasePreferenceFragment(),
                 onPreferenceChangeListener = this@DolbySettingsFragment
                 min = resources.getInteger(R.integer.dialogue_enhancer_min)
                 max = resources.getInteger(R.integer.dialogue_enhancer_max)
+                sliderIncrement = 1
+                setHapticFeedbackMode(SliderPreference.HAPTIC_FEEDBACK_MODE_ON_TICKS)
             }
         }
         updatePrefs(R.bool.dolby_intelligent_equalizer_supported, advSettingsCategory, ieqPref, true)
@@ -161,6 +163,8 @@ class DolbySettingsFragment : SettingsBasePreferenceFragment(),
             onPreferenceChangeListener = this@DolbySettingsFragment
             min = resources.getInteger(R.integer.stereo_widening_min)
             max = resources.getInteger(R.integer.stereo_widening_max)
+            sliderIncrement = 1
+            setHapticFeedbackMode(SliderPreference.HAPTIC_FEEDBACK_MODE_ON_TICKS)
         }
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler)
