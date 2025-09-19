@@ -155,6 +155,7 @@ class DolbySettingsFragment : SettingsBasePreferenceFragment(),
                 max = resources.getInteger(R.integer.dialogue_enhancer_max)
                 sliderIncrement = 1
                 setHapticFeedbackMode(SliderPreference.HAPTIC_FEEDBACK_MODE_ON_TICKS)
+                setUpdatesContinuously(true)
             }
         }
         updatePrefs(R.bool.dolby_intelligent_equalizer_supported, advSettingsCategory, ieqPref, true)
@@ -165,6 +166,7 @@ class DolbySettingsFragment : SettingsBasePreferenceFragment(),
             max = resources.getInteger(R.integer.stereo_widening_max)
             sliderIncrement = 1
             setHapticFeedbackMode(SliderPreference.HAPTIC_FEEDBACK_MODE_ON_TICKS)
+            setUpdatesContinuously(true)
         }
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler)
