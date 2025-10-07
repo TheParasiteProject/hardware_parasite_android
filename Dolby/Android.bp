@@ -9,13 +9,16 @@ android_app {
     name: "ParanoidDolby",
 
     srcs: ["src/**/*.kt"],
-    resource_dirs: ["res"],
+
     certificate: "platform",
     platform_apis: true,
     system_ext_specific: true,
     privileged: true,
 
-    overrides: ["MusicFX", "AudioFX"],
+    overrides: [
+        "MusicFX",
+        "AudioFX",
+    ],
     static_libs: [
         "SettingsLib",
         "SettingsLibSettingsTheme",
@@ -43,13 +46,13 @@ android_app {
 prebuilt_etc {
     name: "privapp-permissions-dolby.xml",
     src: "privapp-permissions-dolby.xml",
-    sub_dir: "permissions",
+    relative_install_path: "permissions",
     system_ext_specific: true,
 }
 
 prebuilt_etc {
     name: "preinstalled-packages-platform-dolby.xml",
     src: "preinstalled-packages-platform-dolby.xml",
-    sub_dir: "sysconfig",
+    relative_install_path: "sysconfig",
     system_ext_specific: true,
 }
