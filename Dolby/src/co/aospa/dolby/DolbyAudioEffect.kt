@@ -11,9 +11,8 @@ import co.aospa.dolby.DolbyConstants.Companion.dlog
 import co.aospa.dolby.DolbyConstants.DsParam
 import java.util.UUID
 
-class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
-    EFFECT_TYPE_NULL, EFFECT_TYPE_DAP, priority, audioSession
-) {
+class DolbyAudioEffect(priority: Int, audioSession: Int) :
+    AudioEffect(EFFECT_TYPE_NULL, EFFECT_TYPE_DAP, priority, audioSession) {
 
     var dsOn: Boolean
         get() = getIntParam(EFFECT_PARAM_ENABLE) == 1
@@ -41,9 +40,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         val buf = ByteArray(12)
         int32ToByteArray(param, buf, 0)
         checkStatus(getParameter(EFFECT_PARAM_CPDP_VALUES + param, buf))
-        return byteArrayToInt32(buf).also {
-            dlog(TAG, "getIntParam($param): $it")
-        }
+        return byteArrayToInt32(buf).also { dlog(TAG, "getIntParam($param): $it") }
     }
 
     fun resetProfileSpecificSettings(profile: Int = this.profile) {
@@ -95,7 +92,10 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         dlog(TAG, "getDapParameter: profile=$profile param=$param port=$port")
         val length = param.length
         val buf = ByteArray((length + 2) * 4)
-        val p = (param.id shl 16) + ((profile shl 12) or (port shl 8)) + EFFECT_PARAM_GET_TUNING_PARAMETER
+        val p =
+            (param.id shl 16) +
+                ((profile shl 12) or (port shl 8)) +
+                EFFECT_PARAM_GET_TUNING_PARAMETER
         checkStatus(getParameter(p, buf))
         return byteArrayToInt32Array(buf, length)
     }
@@ -108,8 +108,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
 
     companion object {
         private const val TAG = "DolbyAudioEffect"
-        private val EFFECT_TYPE_DAP =
-            UUID.fromString("9d4921da-8225-4f29-aefa-39537a04bcaa")
+        private val EFFECT_TYPE_DAP = UUID.fromString("9d4921da-8225-4f29-aefa-39537a04bcaa")
 
         private const val EFFECT_PARAM_ENABLE = 0
         private const val EFFECT_PARAM_CPDP_VALUES = 5
@@ -130,9 +129,9 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
 
         private fun byteArrayToInt32(ba: ByteArray): Int {
             return ((ba[3].toInt() and 0xff) shl 24) or
-                    ((ba[2].toInt() and 0xff) shl 16) or
-                    ((ba[1].toInt() and 0xff) shl 8) or
-                    (ba[0].toInt() and 0xff)
+                ((ba[2].toInt() and 0xff) shl 16) or
+                ((ba[1].toInt() and 0xff) shl 8) or
+                (ba[0].toInt() and 0xff)
         }
 
         private fun int32ArrayToByteArray(src: IntArray, dst: ByteArray, index: Int) {
@@ -149,7 +148,8 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
             val srcLength = ba.size shr 2
             val dst = IntArray(dstLength.coerceAtMost(srcLength))
             for (i in dst.indices) {
-                dst[i] = ((ba[i * 4 + 3].toInt() and 0xff) shl 24) or
+                dst[i] =
+                    ((ba[i * 4 + 3].toInt() and 0xff) shl 24) or
                         ((ba[i * 4 + 2].toInt() and 0xff) shl 16) or
                         ((ba[i * 4 + 1].toInt() and 0xff) shl 8) or
                         (ba[i * 4].toInt() and 0xff)
