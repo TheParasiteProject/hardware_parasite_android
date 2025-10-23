@@ -6,6 +6,7 @@
 
 package co.aospa.dolby
 
+import android.media.AudioDeviceInfo
 import android.util.Log
 
 class DolbyConstants {
@@ -23,6 +24,44 @@ class DolbyConstants {
 
         override fun toString(): String {
             return "${name}(${id})"
+        }
+    }
+
+    enum class DsTuning(val id: Int) {
+        INTERNAL_SPEAKER(0),
+        HDMI(1),
+        MIRACAST(2),
+        HEADPHONE(3),
+        BLUETOOTH(4),
+        USB(5);
+
+        override fun toString(): String {
+            return "${name}"
+        }
+
+        companion object {
+            fun getActivePort(type: Int): Int {
+                return when (type) {
+                    AudioDeviceInfo.TYPE_BUILTIN_EARPIECE,
+                    AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> INTERNAL_SPEAKER.id
+                    AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                    AudioDeviceInfo.TYPE_WIRED_HEADPHONES -> HEADPHONE.id
+                    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+                    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> BLUETOOTH.id
+                    AudioDeviceInfo.TYPE_HDMI -> HDMI.id
+                    AudioDeviceInfo.TYPE_DOCK,
+                    AudioDeviceInfo.TYPE_USB_ACCESSORY,
+                    AudioDeviceInfo.TYPE_USB_DEVICE,
+                    AudioDeviceInfo.TYPE_USB_HEADSET -> USB.id
+                    AudioDeviceInfo.TYPE_HDMI_ARC,
+                    AudioDeviceInfo.TYPE_HDMI_EARC -> HDMI.id
+                    AudioDeviceInfo.TYPE_BUILTIN_SPEAKER_SAFE -> INTERNAL_SPEAKER.id
+                    AudioDeviceInfo.TYPE_BLE_HEADSET,
+                    AudioDeviceInfo.TYPE_BLE_SPEAKER,
+                    AudioDeviceInfo.TYPE_BLE_BROADCAST -> BLUETOOTH.id
+                    else -> INTERNAL_SPEAKER.id
+                }
+            }
         }
     }
 

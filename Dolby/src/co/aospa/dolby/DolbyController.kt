@@ -18,6 +18,7 @@ import android.util.Log
 import androidx.preference.PreferenceManager
 import co.aospa.dolby.DolbyConstants.Companion.dlog
 import co.aospa.dolby.DolbyConstants.DsParam
+import co.aospa.dolby.DolbyConstants.DsTuning
 
 internal class DolbyController private constructor(private val context: Context) {
     private var dolbyEffect = DolbyAudioEffect(EFFECT_PRIORITY, audioSession = 0)
@@ -27,20 +28,6 @@ internal class DolbyController private constructor(private val context: Context)
         context.getResources().getBoolean(R.bool.dolby_stereo_widening_supported)
     private val volumeLevelerSupported =
         context.getResources().getBoolean(R.bool.dolby_volume_leveler_supported)
-
-    private var speakerOverride: Boolean? = null
-    private var isOnSpeaker = true
-        get() {
-            speakerOverride?.let {
-                return it
-            }
-            return field
-        }
-        set(value) {
-            if (field == value) return
-            field = value
-            dlog(TAG, "setIsOnSpeaker($value)")
-        }
 
     // Restore current profile on every media session
     private val playbackCallback =
@@ -60,13 +47,13 @@ internal class DolbyController private constructor(private val context: Context)
         object : AudioDeviceCallback() {
             override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
                 dlog(TAG, "onAudioDevicesAdded")
-                updateSpeakerState()
+                updateActivePort()
                 setCurrentProfile()
             }
 
             override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
                 dlog(TAG, "onAudioDevicesRemoved")
-                updateSpeakerState()
+                updateActivePort()
                 setCurrentProfile()
             }
         }
@@ -103,8 +90,14 @@ internal class DolbyController private constructor(private val context: Context)
             dolbyEffect.profile = value
         }
 
-    var port: Int = 0
-        get() = if (isOnSpeaker) 0 else 3
+    var portOverride: Int? = null
+    var port: Int = DsTuning.INTERNAL_SPEAKER.id
+        get() {
+            portOverride?.let {
+                return it
+            }
+            return field
+        }
         set(value) {
             if (field == value) return
             field = value
@@ -127,11 +120,11 @@ internal class DolbyController private constructor(private val context: Context)
                     restoreSettings(profile)
                 } else {
                     // Now restore our profile-specific settings
-                    speakerOverride = true
-                    restoreSettings(profile)
-                    speakerOverride = false
-                    restoreSettings(profile)
-                    speakerOverride = null
+                    for (portToRestore in DsTuning.values()) {
+                        portOverride = portToRestore.id
+                        restoreSettings(profile)
+                    }
+                    portOverride = null
                 }
             }
 
@@ -224,9 +217,9 @@ internal class DolbyController private constructor(private val context: Context)
         }
     }
 
-    private fun updateSpeakerState() {
+    private fun updateActivePort() {
         val device = audioManager!!.getDevicesForAttributes(ATTRIBUTES_MEDIA)[0]
-        isOnSpeaker = (device.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)
+        port = DsTuning.getActivePort(device.type)
     }
 
     private fun setCurrentProfile() {
