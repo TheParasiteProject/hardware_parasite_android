@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Copyright (C) 2023 The LineageOS Project
+    SPDX-FileCopyrightText: 2023-2025 The LineageOS Project
     SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
     <string name="app_name">SIM Service</string>
 
-    <string name="carrier_list_json" />
-    <string name="default_smdp_override" />
-    <string name="sim_illustration_lottie_mappings_json"/>
-    <string name="sim_slot_mappings_json"/>
+    <string name="carrier_list_json" translatable="false"/>
+    <string name="default_smdp_override" translatable="false"/>
+    <string name="sim_illustration_lottie_mappings_json" translatable="false"/>
+    <string name="sim_slot_mappings_json" translatable="false"/>
 </resources>
