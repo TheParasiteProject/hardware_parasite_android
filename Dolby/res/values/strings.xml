@@ -28,8 +28,8 @@
     <string name="dolby_stereo_widening">Stereo widening</string>
     <string name="dolby_volume_leveler">Volume leveler</string>
     <string name="dolby_connect_headphones">Connect headphones</string>
-    <string name="dolby_reset_all">Reset profiles</string>
-    <string name="dolby_reset_all_message">This will reset all profiles to factory defaults.</string>
+    <string name="dolby_reset_all">Reset profiles?</string>
+    <string name="dolby_reset_all_message">This will reset all profiles to factory defaults</string>
     <string name="dolby_reset_all_toast">Succesfully reset all profiles</string>
     <string name="dolby_strength">Strength</string>
 
