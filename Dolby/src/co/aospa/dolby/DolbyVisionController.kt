@@ -29,16 +29,18 @@ internal class DolbyVisionController private constructor(private val context: Co
     }
 
     private fun overrideHdrTypes() {
-        val dm: DisplayManager = context.getSystemService(DisplayManager::class.java) ?: return
-        dm.overrideHdrTypes(
-            Display.DEFAULT_DISPLAY,
-            intArrayOf(
-                HdrCapabilities.HDR_TYPE_DOLBY_VISION,
-                HdrCapabilities.HDR_TYPE_HDR10,
-                HdrCapabilities.HDR_TYPE_HLG,
-                HdrCapabilities.HDR_TYPE_HDR10_PLUS,
-            ),
-        )
+        (context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager)
+            ?.takeUnless {
+                HdrCapabilities.HDR_TYPE_DOLBY_VISION in it.getSupportedHdrOutputTypes()
+            }
+            ?.let { dm ->
+                dm.overrideHdrTypes(
+                    Display.DEFAULT_DISPLAY,
+                    (listOf(HdrCapabilities.HDR_TYPE_DOLBY_VISION) +
+                            dm.getSupportedHdrOutputTypes().toList())
+                        .toIntArray(),
+                )
+            }
     }
 
     companion object {
